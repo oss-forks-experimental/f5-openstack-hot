@@ -140,6 +140,12 @@ function configure_ssh_key() {
     fi
 }
 
+function check_strace() {
+    if [ -z $(pidof strace) ]; then #debug
+        nohup sh -c 'while true; do if [ -s /service/restjavad/supervise/pid ] ; then setsid strace -p $(cat /service/restjavad/supervise/pid) -o /shared/tmp/restjavad-strace.txt -f -s 1024 -v -tt ; break; fi ; done > /dev/null 2>&1' &>/dev/null < /dev/null & #debug
+    fi #debug
+}
+
 function check_restjavad_status() {
     # Workaround for ID710809
     # Debug collects the strace of restjavad
@@ -197,13 +203,14 @@ function send_heat_signal() {
 }
 
 function main() {
+    check_strace #debug
     set_vars
     check_mcpd_status
     verify_files
     prep_cloud_libs
     set_remote_hosts
     configure_ssh_key
-    check_restjavad_status
+    check_restjavad_status #debug
     send_heat_signal
 }
 
